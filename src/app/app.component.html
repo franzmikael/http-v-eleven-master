@@ -35,7 +35,7 @@
   </div>
   <hr /><div class="row">
     <div class="col-xs-12 col-md-6 col-md-offset-3">
-      <form #updateForm="ngForm" (ngSubmit)="onPatchPost(updateForm.value)">
+      <form #patchForm="ngForm" (ngSubmit)="onPatchPost(patchForm.value)">
         <div class="form-group">
           <label for="id">Id</label>
           <input
@@ -44,7 +44,7 @@
             id="id"
             required
             disabled
-            [ngModel]="selected.id"
+            [ngModel]="patchFormModel.id"
             name="id"
           />
         </div>
@@ -55,7 +55,7 @@
             class="form-control"
             id="title"
             required
-            [ngModel]="selected.title"
+            [ngModel]="patchFormModel.title"
             name="title"
           />
         </div>
@@ -65,14 +65,14 @@
             class="form-control"
             id="content"
             required
-            [ngModel]="selected.content"
+            [ngModel]="patchFormModel.content"
             name="content"
           ></textarea>
         </div>
         <button
           class="btn btn-primary"
           type="submit"
-          [disabled]="!updateForm.valid"
+          [disabled]="!patchForm.valid"
         >
           Update Post
         </button>
@@ -80,7 +80,7 @@
         <button
           class="btn btn-outline-danger"
           type="button"
-          (click)="onClearPatch()"
+          (click)="onClearPatchForm()"
         >
           Clear Form
         </button>
@@ -103,11 +103,11 @@
       </button>
     </div>
   </div>
-  <div class="row">
+  <div class="row" *ngIf="!loading">
     <div class="col-xs-12 col-md-6 col-md-offset-3">
       <p *ngIf="loadedPosts.length < 1">No posts available!</p>
       <ul class="list-group" *ngIf="loadedPosts.length >= 1">
-        <li class="btn btn-secondary list-group-item" style="text-align: left;" *ngFor="let post of loadedPosts" (click)="onLoadPostItem(post)">
+        <li class="btn btn-secondary list-group-item" style="text-align: left;" *ngFor="let post of loadedPosts" (click)="onLoadPatchForm(post)">
           <h3>{{ post.title }}</h3>
           <p>{{ post.content }}</p>
         </li>
@@ -115,7 +115,12 @@
     </div>
   </div>
   <div class="row">
-    <div class="spinner-border" role="status" *ngIf="showLoading">
+    <div class="alert alert-danger alert-dismissible" role="alert" *ngIf="error">
+      <h3>Error Occur!</h3>
+      <p>{{ error.message }}</p>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" (click)="onClearError()"></button>
     </div>
+    <div class="spinner-border" role="status" *ngIf="loading"></div>
+    <span class="sr-only" *ngIf="loading">Loading ...</span>
   </div>
 </div>

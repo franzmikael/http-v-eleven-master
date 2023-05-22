@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { PostService } from './post.service';
 import { Post } from './post.model';
 
 @Component({
@@ -9,79 +8,98 @@ import { Post } from './post.model';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  endpointUrl: string = 'https://http-training-4a130-default-rtdb.asia-southeast1.firebasedatabase.app/';
-  postUrl: string = this.endpointUrl+'post.json';
+  loading = false;
+  error = null;
   loadedPosts = [];
-  showLoading = false;
-
-  selected = {
+  patchFormModel = {
     id : '',
     title : '',
     content : '',
   }
 
-  constructor(private http: HttpClient) {}
+  constructor(private postService: PostService) {}
 
   ngOnInit() {
     this.onFetchPosts();
   }
 
   onFetchPosts() {
-    // Send Http request
-    this.showLoading = true;
-    this.http.get<{[key: string] : Post}>(this.postUrl)
-    .pipe(
-      map( response => {
-        const arr: Post[] = [];
-        for (const key in response) {
-          if (response.hasOwnProperty(key)) {
-            arr.push({...response[key], id: key})
-          }
-        }
-        return arr;
-      })
-    ).subscribe(
+    this.loading = true;
+    this.postService.fetch()
+    .subscribe(
       posts => {
-        this.showLoading = false;
         this.loadedPosts = posts;
+        this.loading = false;
+      },
+      error => {
+        this.error = error
+        this.loading = false;
       }
     )
   }
 
-  onCreatePost(postData: { title: string; content: string }) {
-    // Send Http request
-    this.http.post<{name: string}>(this.postUrl, postData).subscribe(
-      (_data) => {
+  onCreatePost(postData: Post) {
+    this.loading = true;
+    this.postService.post(postData)
+    .subscribe( 
+      _posts => {
         this.onFetchPosts();
+        this.loading = false;
+      },
+      error => {
+        this.error = error
+        this.loading = false;
       }
     )
   }
 
-  onPatchPost(post) {
+  onPatchPost(postData: Post) {
+    this.loading = true;
     let payload = {
-      [post.id] : {content: post.content, title: post.title}
+      [this.patchFormModel.id] : {content: postData.content, title: postData.title}
     }
-    this.http.patch<{name: string}>(this.postUrl, payload).subscribe(
-      (_data) => {
+    this.postService.patch(payload)
+    .subscribe(
+      _posts => {
         this.onFetchPosts();
-        this.onClearPatch();
+        this.onClearPatchForm();
+        this.loading = false;
+      },
+      error => {
+        this.error = error
+        this.loading = false;
       }
     )
   }
 
-  // onClearPosts() {
-  //   // Send Http request
-  // }
-
-  onLoadPostItem(post) {
-    this.selected.id = post.id;
-    this.selected.title = post.title;
-    this.selected.content = post.content;
+  onClearPosts() {
+    this.loading = true;
+    this.postService.delete()
+    .subscribe(
+      _posts => {
+        this.onFetchPosts();
+        this.loading = false;
+      },
+      error => {
+        this.error = error
+        this.loading = false;
+      }
+    )
   }
 
-  onClearPatch() {
-    this.selected.id = '';
-    this.selected.title = '';
-    this.selected.content = '';
+  onLoadPatchForm(post) {
+    this.patchFormModel.id = post.id;
+    this.patchFormModel.title = post.title;
+    this.patchFormModel.content = post.content;
+  }
+
+  onClearPatchForm() {
+    this.patchFormModel.id = '';
+    this.patchFormModel.title = '';
+    this.patchFormModel.content = '';
+  }
+
+  onClearError() {
+    this.error = null;
   }
 }
