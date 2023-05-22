@@ -69,9 +69,9 @@ export class AppComponent implements OnInit {
     )
   }
 
-  onClearPosts() {
-    // Send Http request
-  }
+  // onClearPosts() {
+  //   // Send Http request
+  // }
 
   onLoadPostItem(post) {
     this.selected.id = post.id;
